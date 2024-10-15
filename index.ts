@@ -9,6 +9,7 @@ import {
 import {
   pgPolicy,
   PgRole,
+  type AnyPgColumn,
   type PgPolicyToOption,
 } from "drizzle-orm/pg-core";
 
@@ -104,3 +105,5 @@ export const crudPolicy = (options: {
     }),
   ];
 };
+
+export const authUid = (userIdColumn: AnyPgColumn) => sql`(select auth.user_id() = ${userIdColumn})`;
