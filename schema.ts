@@ -1,17 +1,11 @@
 import { sql } from "drizzle-orm";
-import {
-  pgTable,
-  text,
-  timestamp,
-  pgPolicy,
-} from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, pgPolicy } from "drizzle-orm/pg-core";
 import { authenticatedRole, anonymousRole } from "drizzle-orm/neon";
 
-// Temporary: this should be imported from "drizzle-orm/neon"
+// TODO: this should be imported from "drizzle-orm/neon"
 import { crudPolicy, authUid } from "./";
 
-// core `users` table, this remains private
-// enabling RLS without policies locks this down to admin-only, users cannot edit
+// private table, without RLS policies this is admin-only
 export const users = pgTable("users", {
   userId: text("user_id").primaryKey(),
   email: text("email").unique().notNull(),
@@ -19,35 +13,30 @@ export const users = pgTable("users", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-// `user_profile` table has public read / private modify
-// anyone can see a user profile but only the user associated can edit their profile
+// public read / authenticated user modify
 export const userProfiles = pgTable(
   "user_profiles",
   {
     userId: text("user_id").references(() => users.userId),
     name: text("name"),
   },
-  (t) =>
-    // this table is pretty straightforward CRUD and therefore
-    // can use the simplified `crudPolicy` function
+  (table) =>
+    // simple CRUD tables use the `crudPolicy` function
     [
       // anyone (anonymous) can read
       crudPolicy({
-        // `anonymousRole` is a default role
-        role: anonymousRole,
+        role: anonymousRole, // default role
         read: true,
       }),
-      // only authenticated -> users can modify
+      // authenticated users can only modify their data
       crudPolicy({
-        // `authenticatedRole` is a default role
-        role: authenticatedRole,
+        role: authenticatedRole, // default role
         read: true,
-        modify: authUid(t.userId),
+        modify: authUid(table.userId),
       }),
     ],
 );
 
-// the messages within a "chat"
 export const chatMessages = pgTable(
   "chat_messages",
   {
@@ -58,38 +47,35 @@ export const chatMessages = pgTable(
       .references(() => users.userId, { onDelete: "cascade" })
       .notNull(),
   },
-  (t) => [
-    // We need `pgPolicy` here as the rules are more complex
-    // Users cannot update or delete chat messages, not even their own
-    // Creating a policy for "insert" allows creation and ignoring
-    // update/delete defaults to not allowing
+  (table) => [
+    // complex table access require `pgPolicy` functions
+    // authenticated users can only insert (delete and modify omitted)
     pgPolicy("chats-policy-insert", {
       for: "insert",
       to: authenticatedRole,
-      withCheck: sql`(select auth.user_id() = ${t.sender} and auth.user_id() in (select user_id from chat_participants where chat_id = ${t.chatId}))`,
+      withCheck: sql`(select auth.user_id() = ${table.sender} and auth.user_id() in (select user_id from chat_participants where chat_id = ${table.chatId}))`,
     }),
 
-    // A simpler CRUD read rule for any participant to be able to read
-    // any message within the chat
+    // authenticated users can read messages for chats they participate in
     crudPolicy({
       role: authenticatedRole,
-      read: sql`(select auth.user_id() in (select user_id from chat_participants where chat_id = ${t.chatId}))`,
+      read: sql`(select auth.user_id() in (select user_id from chat_participants where chat_id = ${table.chatId}))`,
     }),
   ],
 );
 
-// the users participating in a chat, connecting users and chats tables
+// chat participants, connecting users and chats tables
 export const chatParticipants = pgTable(
   "chat_participants",
   {
     chatId: text("chat_id").references(() => chats.id),
     userId: text("user_id").references(() => users.userId),
   },
-  (t) => [
-    // Users in the chat can see (read) the participant list
+  (table) => [
+    // authenticated users can read chat participant list
     crudPolicy({
       role: authenticatedRole,
-      read: sql`(select auth.user_id() in (select user_id from chat_participants where chat_id = ${t.chatId}))`,
+      read: sql`(select auth.user_id() in (select user_id from chat_participants where chat_id = ${table.chatId}))`,
     }),
   ],
 );
@@ -100,16 +86,15 @@ export const chats = pgTable(
     id: text("id").primaryKey(),
     title: text("title").notNull(),
   },
-  (t) => [
-    // Chat participants can see the chats they are in
+  (table) => [
+    // authenticated users can read list of chats they are participating in
     crudPolicy({
       role: authenticatedRole,
-      read: sql`(select auth.user_id() in (select user_id from chat_participants where chat_id = ${t.id}))`,
+      read: sql`(select auth.user_id() in (select user_id from chat_participants where chat_id = ${table.id}))`,
     }),
   ],
 );
 
-// `posts` like a simple blog post
 export const posts = pgTable(
   "posts",
   {
@@ -118,26 +103,22 @@ export const posts = pgTable(
     content: text("content").notNull(),
     userId: text("userId").references(() => users.userId),
   },
-  (t) =>
-    // Simple CRUD rules apply here
-    [
-      // Anyone can read these posts
-      crudPolicy({
-        role: anonymousRole,
-        read: true,
-      }),
-      // Authenticated users can read / write their own posts
-      crudPolicy({
-        role: authenticatedRole,
-        read: true,
-        // checking that the post table `userId` -> `t.userId` is
-        // the authenticated user and has access to modify the post
-        modify: authUid(t.userId),
-      }),
-    ],
+  (table) => [
+    // anyone (anonymous) can read
+    crudPolicy({
+      role: anonymousRole,
+      read: true,
+    }),
+    // authenticated users can can read and modify their own posts
+    crudPolicy({
+      role: authenticatedRole,
+      read: true,
+      // `userId` column matches `auth.user_id()` allows modify
+      modify: authUid(table.userId),
+    }),
+  ],
 );
 
-// `comments` like simple post comments
 export const comments = pgTable(
   "comments",
   {
@@ -146,19 +127,17 @@ export const comments = pgTable(
     content: text("content"),
     userId: text("userId").references(() => users.userId),
   },
-  (t) =>
-    // Same CRUD rules as `posts`
-    // anyone can read comments
-    // authenticated users can create/update/delete their own comments
-    [
-      crudPolicy({
-        role: anonymousRole,
-        read: true,
-      }),
-      crudPolicy({
-        role: authenticatedRole,
-        read: true,
-        modify: authUid(t.userId),
-      }),
-    ],
+  (table) => [
+    // anyone (anonymous) can read
+    crudPolicy({
+      role: anonymousRole,
+      read: true,
+    }),
+    // authenticated users can can read and modify their own comments
+    crudPolicy({
+      role: authenticatedRole,
+      read: true,
+      modify: authUid(table.userId),
+    }),
+  ],
 );
