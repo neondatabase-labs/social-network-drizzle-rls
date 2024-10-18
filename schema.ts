@@ -5,6 +5,9 @@ import { authenticatedRole, anonymousRole } from "drizzle-orm/neon";
 // TODO: this should be imported from "drizzle-orm/neon"
 import { crudPolicy, authUid } from "./";
 
+// all tables are admin-only by default
+// RLS is used to allow certain things to be created, read, updated, or deleted
+
 // private table, without RLS policies this is admin-only
 export const users = pgTable("users", {
   userId: text("user_id").primaryKey(),
@@ -49,7 +52,7 @@ export const chatMessages = pgTable(
   },
   (table) => [
     // complex table access require `pgPolicy` functions
-    // authenticated users can only insert (delete and modify omitted)
+    // authenticated users can only insert – because there is no delete or update policy, users cannot update or delete their own or others' messages
     pgPolicy("chats-policy-insert", {
       for: "insert",
       to: authenticatedRole,
