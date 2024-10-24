@@ -8,6 +8,13 @@
       "when": 1729014228485,
       "tag": "0000_old_captain_stacy",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1729750919835,
+      "tag": "0001_wealthy_reptil",
+      "breakpoints": true
     }
   ]
 }
