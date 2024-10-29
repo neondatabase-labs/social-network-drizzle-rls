@@ -89,7 +89,7 @@ export const chatParticipants = pgTable(
 export const chats = pgTable(
   "chats",
   {
-    id: text("id").primaryKey().unique(),
+    id: text("id").primaryKey(),
     title: text("title").notNull(),
     ownerId: text("owner_id").references(() => users.userId),
   },
