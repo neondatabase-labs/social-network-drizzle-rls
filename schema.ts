@@ -30,6 +30,7 @@ export const userProfiles = pgTable(
       crudPolicy({
         role: anonymousRole, // default role
         read: true,
+        modify: null,
       }),
       // authenticated users can only modify their data
       crudPolicy({
@@ -51,18 +52,19 @@ export const chatMessages = pgTable(
       .notNull(),
   },
   (table) => [
+    // authenticated users can read messages for chats they participate in
+    crudPolicy({
+      role: authenticatedRole,
+      read: sql`(select auth.user_id() in (select user_id from chat_participants where chat_id = ${table.chatId}))`,
+      modify: null,
+    }),
+
     // complex table access require `pgPolicy` functions
     // authenticated users can only insert – because there is no delete or update policy, users cannot update or delete their own or others' messages
     pgPolicy("chats-policy-insert", {
       for: "insert",
       to: authenticatedRole,
       withCheck: sql`(select auth.user_id() = ${table.sender} and auth.user_id() in (select user_id from chat_participants where chat_id = ${table.chatId}))`,
-    }),
-
-    // authenticated users can read messages for chats they participate in
-    crudPolicy({
-      role: authenticatedRole,
-      read: sql`(select auth.user_id() in (select user_id from chat_participants where chat_id = ${table.chatId}))`,
     }),
   ],
 );
@@ -79,6 +81,7 @@ export const chatParticipants = pgTable(
     crudPolicy({
       role: authenticatedRole,
       read: sql`(select auth.user_id() in (select user_id from chat_participants where chat_id = ${table.chatId}))`,
+      modify: sql`(select auth.user_id() = (select owner_id from chats where id = ${table.chatId}))`,
     }),
   ],
 );
@@ -86,14 +89,17 @@ export const chatParticipants = pgTable(
 export const chats = pgTable(
   "chats",
   {
-    id: text("id").primaryKey(),
+    id: text("id").primaryKey().unique(),
     title: text("title").notNull(),
+    ownerId: text("owner_id").references(() => users.userId),
   },
   (table) => [
-    // authenticated users can read list of chats they are participating in
+    // authenticated users can read list of chats they are participating in. Anyone can create a chat and become the owner
+    // of that chat.
     crudPolicy({
       role: authenticatedRole,
       read: sql`(select auth.user_id() in (select user_id from chat_participants where chat_id = ${table.id}))`,
+      modify: authUid(table.ownerId),
     }),
   ],
 );
@@ -111,6 +117,7 @@ export const posts = pgTable(
     crudPolicy({
       role: anonymousRole,
       read: true,
+      modify: null,
     }),
     // authenticated users can can read and modify their own posts
     crudPolicy({
@@ -135,6 +142,7 @@ export const comments = pgTable(
     crudPolicy({
       role: anonymousRole,
       read: true,
+      modify: null,
     }),
     // authenticated users can can read and modify their own comments
     crudPolicy({
