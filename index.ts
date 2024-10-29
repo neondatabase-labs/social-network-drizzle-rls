@@ -7,6 +7,7 @@ import {
   type DrizzleEntityClass,
 } from "drizzle-orm";
 import {
+  PgPolicy,
   pgPolicy,
   PgRole,
   type AnyPgColumn,
@@ -51,22 +52,34 @@ export function is<T extends DrizzleEntityClass<any>>(
 
 export const crudPolicy = (options: {
   role: PgPolicyToOption;
-  read?: SQL | boolean;
-  modify?: SQL | boolean;
+  read: SQL | boolean | null;
+  modify: SQL | boolean | null;
 }) => {
-  const read: SQL =
-    options.read === true
-      ? sql`true`
-      : options.read === false || options.read === undefined
-        ? sql`false`
-        : options.read;
+  if (options.read === undefined) {
+    throw new Error("crudPolicy requires a read policy");
+  }
 
-  const modify: SQL =
-    options.modify === true
-      ? sql`true`
-      : options.modify === false || options.modify === undefined
-        ? sql`false`
-        : options.modify;
+  if (options.modify === undefined) {
+    throw new Error("crudPolicy requires a modify policy");
+  }
+  
+  let read: SQL | undefined;
+  if (options.read === true) {
+    read = sql`true`;
+  } else if (options.read === false) {
+    read = sql`false`;
+  } else if (options.read !== null) {
+    read = options.read;
+  }
+
+  let modify: SQL | undefined;
+  if (options.modify === true) {
+    modify = sql`true`;
+  } else if (options.modify === false) {
+    modify = sql`false`;
+  } else if (options.modify !== null) {
+    modify = options.modify;
+  }
 
   let rolesName = "";
   if (Array.isArray(options.role)) {
@@ -82,28 +95,29 @@ export const crudPolicy = (options: {
   }
 
   return [
-    pgPolicy(`crud-${rolesName}-policy-insert`, {
+    read && pgPolicy(`crud-${rolesName}-policy-select`, {
+      for: "select",
+      to: options.role,
+      using: read,
+    }),
+
+    modify && pgPolicy(`crud-${rolesName}-policy-insert`, {
       for: "insert",
       to: options.role,
       withCheck: modify,
     }),
-    pgPolicy(`crud-${rolesName}-policy-update`, {
+    modify && pgPolicy(`crud-${rolesName}-policy-update`, {
       for: "update",
       to: options.role,
       using: modify,
       withCheck: modify,
     }),
-    pgPolicy(`crud-${rolesName}-policy-delete`, {
+    modify && pgPolicy(`crud-${rolesName}-policy-delete`, {
       for: "delete",
       to: options.role,
       using: modify,
     }),
-    pgPolicy(`crud-${rolesName}-policy-select`, {
-      for: "select",
-      to: options.role,
-      using: read,
-    }),
-  ];
+  ].filter(Boolean);
 };
 
 export const authUid = (userIdColumn: AnyPgColumn) => sql`(select auth.user_id() = ${userIdColumn})`;
