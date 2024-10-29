@@ -15,8 +15,7 @@ ALTER TABLE "chat_participants" ENABLE ROW LEVEL SECURITY;--> statement-breakpoi
 CREATE TABLE IF NOT EXISTS "chats" (
 	"id" text PRIMARY KEY NOT NULL,
 	"title" text NOT NULL,
-	"owner_id" text,
-	CONSTRAINT "chats_id_unique" UNIQUE("id")
+	"owner_id" text
 );
 --> statement-breakpoint
 ALTER TABLE "chats" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint

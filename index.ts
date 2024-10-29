@@ -7,7 +7,6 @@ import {
   type DrizzleEntityClass,
 } from "drizzle-orm";
 import {
-  PgPolicy,
   pgPolicy,
   PgRole,
   type AnyPgColumn,

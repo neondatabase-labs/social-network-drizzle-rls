@@ -1,5 +1,5 @@
 {
-  "id": "dbf4bff1-4dba-4b85-be5d-ecb6511af7f6",
+  "id": "4d6d978d-a9a0-44ba-9c9d-0062baa09929",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -217,15 +217,7 @@
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "chats_id_unique": {
-          "name": "chats_id_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "id"
-          ]
-        }
-      },
+      "uniqueConstraints": {},
       "policies": {
         "crud-authenticated-policy-select": {
           "name": "crud-authenticated-policy-select",
