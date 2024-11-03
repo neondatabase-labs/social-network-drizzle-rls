@@ -1,5 +1,5 @@
 {
-  "id": "6c230846-ae26-40ce-8779-e37f3105308c",
+  "id": "f6e5fee5-7310-4168-9346-47bdfffb6722",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -72,7 +72,7 @@
           "to": [
             "authenticated"
           ],
-          "using": "(select auth.user_id() in (select user_id from chat_participants where chat_id = \"chat_messages\".\"chat_id\"))"
+          "using": "((select auth.user_id()) in (select user_id from my_chats_participants where chat_id = \"chat_messages\".\"chat_id\"))"
         },
         "chats-policy-insert": {
           "name": "chats-policy-insert",
@@ -81,7 +81,7 @@
           "to": [
             "authenticated"
           ],
-          "withCheck": "(select auth.user_id() = \"chat_messages\".\"sender\" and auth.user_id() in (select user_id from chat_participants where chat_id = \"chat_messages\".\"chat_id\"))"
+          "withCheck": "((select auth.user_id()) = \"chat_messages\".\"sender\" and (select auth.user_id()) in (select user_id from my_chats_participants where chat_id = \"chat_messages\".\"chat_id\"))"
         }
       },
       "checkConstraints": {},
@@ -143,7 +143,7 @@
           "to": [
             "authenticated"
           ],
-          "using": "(select auth.user_id() in (select user_id from chat_participants where chat_id = \"chat_participants\".\"chat_id\"))"
+          "using": "false"
         },
         "crud-authenticated-policy-insert": {
           "name": "crud-authenticated-policy-insert",
@@ -226,7 +226,7 @@
           "to": [
             "authenticated"
           ],
-          "using": "(select auth.user_id() in (select user_id from chat_participants where chat_id = \"chats\".\"id\"))"
+          "using": "((select auth.user_id()) = \"chats\".\"owner_id\" or (select auth.user_id()) in (select user_id from MY_CHATS_PARTICIPANTS where chat_id = \"chats\".\"id\"))"
         },
         "crud-authenticated-policy-insert": {
           "name": "crud-authenticated-policy-insert",
@@ -607,7 +607,29 @@
   "schemas": {},
   "sequences": {},
   "roles": {},
-  "views": {},
+  "views": {
+    "public.my_chats_participants": {
+      "columns": {
+        "chat_id": {
+          "name": "chat_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "definition": "select \"chat_id\", \"user_id\" from \"chat_participants\" where \"chat_participants\".\"chat_id\" in (select \"chat_id\" from \"chat_participants\" where \"chat_participants\".\"user_id\" = auth.user_id())",
+      "name": "my_chats_participants",
+      "schema": "public",
+      "isExisting": false,
+      "materialized": false
+    }
+  },
   "_meta": {
     "columns": {},
     "schemas": {},

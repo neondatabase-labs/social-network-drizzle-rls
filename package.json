@@ -10,13 +10,13 @@
   "devDependencies": {
     "@types/bun": "latest",
     "dotenv": "^16.4.5",
-    "drizzle-kit": "^0.26.2-4cb1bdb",
+    "drizzle-kit": "0.27.1",
     "prettier": "^3.3.3"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
   },
   "dependencies": {
-    "drizzle-orm": "^0.35.3-4cb1bdb"
+    "drizzle-orm": "0.36.0"
   }
 }
