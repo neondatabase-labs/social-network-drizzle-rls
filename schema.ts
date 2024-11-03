@@ -6,11 +6,13 @@ import {
   pgPolicy,
   pgView,
 } from 'drizzle-orm/pg-core';
-import { authenticatedRole, anonymousRole } from 'drizzle-orm/neon';
+import {
+  authenticatedRole,
+  anonymousRole,
+  crudPolicy,
+  authUid,
+} from 'drizzle-orm/neon';
 import { eq, inArray } from 'drizzle-orm';
-
-// TODO: this should be imported from "drizzle-orm/neon"
-import { crudPolicy, authUid } from './index';
 
 // all tables are admin-only by default
 // RLS is used to allow certain things to be created, read, updated, or deleted
