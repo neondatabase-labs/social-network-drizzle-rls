@@ -5,6 +5,7 @@ import {
   timestamp,
   pgPolicy,
   pgView,
+  primaryKey,
 } from "drizzle-orm/pg-core";
 import {
   authenticatedRole,
@@ -29,7 +30,9 @@ export const users = pgTable("users", {
 export const userProfiles = pgTable(
   "user_profiles",
   {
-    userId: text("user_id").references(() => users.userId).unique(),
+    userId: text("user_id")
+      .references(() => users.userId)
+      .unique(),
     name: text("name"),
   },
   (table) =>
@@ -86,6 +89,7 @@ export const chatParticipants = pgTable(
     userId: text("user_id").references(() => users.userId),
   },
   (table) => [
+    primaryKey({ columns: [table.chatId, table.userId] }),
     // authenticated users can read chat participant list
     crudPolicy({
       role: authenticatedRole,
