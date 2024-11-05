@@ -1,5 +1,5 @@
 {
-  "id": "f6e5fee5-7310-4168-9346-47bdfffb6722",
+  "id": "51819598-b051-498c-a4a5-4a311e735ae2",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -113,7 +113,12 @@
           "onUpdate": "no action"
         }
       },
-      "compositePrimaryKeys": {},
+      "compositePrimaryKeys": {
+        "chat_participants_chat_id_user_id_pk": {
+          "name": "chat_participants_chat_id_user_id_pk",
+          "columns": ["chat_id", "user_id"]
+        }
+      },
       "uniqueConstraints": {},
       "policies": {
         "crud-authenticated-policy-select": {
@@ -427,7 +432,13 @@
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
+      "uniqueConstraints": {
+        "user_profiles_user_id_unique": {
+          "name": "user_profiles_user_id_unique",
+          "nullsNotDistinct": false,
+          "columns": ["user_id"]
+        }
+      },
       "policies": {
         "crud-anonymous-policy-select": {
           "name": "crud-anonymous-policy-select",
@@ -519,6 +530,7 @@
   "schemas": {},
   "sequences": {},
   "roles": {},
+  "policies": {},
   "views": {
     "public.my_chats_participants": {
       "columns": {
