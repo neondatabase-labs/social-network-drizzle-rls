@@ -20,23 +20,20 @@ import { eq, inArray } from "drizzle-orm";
 
 // private table, without RLS policies this is admin-only
 export const users = pgTable("users", {
-  userId: text("user_id").primaryKey(),
-  email: text("email").unique().notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  userId: text().primaryKey(),
+  email: text().unique().notNull(),
+  createdAt: timestamp().defaultNow().notNull(),
+  updatedAt: timestamp().defaultNow().notNull(),
 }).enableRLS();
 
 // public read / authenticated user modify
 export const userProfiles = pgTable(
   "user_profiles",
   {
-    userId: text("user_id")
-      .references(() => users.userId)
-      .unique(),
-    name: text("name"),
+    userId: text().references(() => users.userId).unique(),
+    name: text(),
   },
   (table) =>
-    // simple CRUD tables use the `crudPolicy` function
     [
       // anyone (anonymous) can read
       crudPolicy({
@@ -56,10 +53,10 @@ export const userProfiles = pgTable(
 export const chatMessages = pgTable(
   "chat_messages",
   {
-    id: text("id").primaryKey(),
-    message: text("message").notNull(),
-    chatId: text("chat_id").references(() => chats.id),
-    sender: text("sender")
+    id: text().primaryKey(),
+    message: text().notNull(),
+    chatId: text().references(() => chats.id),
+    sender: text()
       .references(() => users.userId, { onDelete: "cascade" })
       .notNull(),
   },
@@ -85,8 +82,8 @@ export const chatMessages = pgTable(
 export const chatParticipants = pgTable(
   "chat_participants",
   {
-    chatId: text("chat_id").references(() => chats.id),
-    userId: text("user_id").references(() => users.userId),
+    chatId: text().references(() => chats.id),
+    userId: text().references(() => users.userId),
   },
   (table) => [
     primaryKey({ columns: [table.chatId, table.userId] }),
@@ -105,9 +102,9 @@ export const chatParticipants = pgTable(
 export const chats = pgTable(
   "chats",
   {
-    id: text("id").primaryKey(),
-    title: text("title").notNull(),
-    ownerId: text("owner_id").references(() => users.userId),
+    id: text().primaryKey(),
+    title: text().notNull(),
+    ownerId: text().references(() => users.userId),
   },
   (table) => [
     // authenticated users can read list of chats they are participating in. Anyone can create a chat and become the owner
@@ -127,10 +124,10 @@ export const chats = pgTable(
 export const posts = pgTable(
   "posts",
   {
-    id: text("id").primaryKey(),
-    title: text("title").notNull(),
-    content: text("content").notNull(),
-    userId: text("userId").references(() => users.userId),
+    id: text().primaryKey(),
+    title: text().notNull(),
+    content: text().notNull(),
+    userId: text().references(() => users.userId),
   },
   (table) => [
     // anyone (anonymous) can read
@@ -139,7 +136,7 @@ export const posts = pgTable(
       read: true,
       modify: null,
     }),
-    // authenticated users can can read and modify their own posts
+    // authenticated users can read and modify their own posts
     crudPolicy({
       role: authenticatedRole,
       read: true,
@@ -152,10 +149,10 @@ export const posts = pgTable(
 export const comments = pgTable(
   "comments",
   {
-    id: text("id").primaryKey(),
-    postId: text("post_id").references(() => posts.id),
-    content: text("content"),
-    userId: text("userId").references(() => users.userId),
+    id: text().primaryKey(),
+    postId: text().references(() => posts.id),
+    content: text(),
+    userId: text().references(() => users.userId),
   },
   (table) => [
     // anyone (anonymous) can read
@@ -164,7 +161,7 @@ export const comments = pgTable(
       read: true,
       modify: null,
     }),
-    // authenticated users can can read and modify their own comments
+    // authenticated users can read and modify their own comments
     crudPolicy({
       role: authenticatedRole,
       read: true,
@@ -173,13 +170,12 @@ export const comments = pgTable(
   ],
 );
 
-// This view is necessary because RLS
-// does not support rules that filter a table based on its own data in a recursive way.
-// Specifically, RLS cannot handle conditions like:
-// "Show only the chat participants of chats where I am also a participant."
-// Attempting to enforce this rule directly on the `chatParticipants` table
-// leads to a recursion error. Using a view allows us to apply this filtering logic
-// without running into RLS limitations.
+// This view is necessary because RLS does not support rules that filter a table
+// based on its own data in a recursive way. Specifically, RLS cannot handle
+// conditions like: "Show only the chat participants of chats where I am also a
+// participant." Attempting to enforce this rule directly on the
+// `chatParticipants` table leads to a recursion error. Using a view allows us
+// to apply this filtering logic without running into RLS limitations.
 export const myChatParticipantsView = pgView("my_chats_participants").as(
   (qb) => {
     const subquery = qb
