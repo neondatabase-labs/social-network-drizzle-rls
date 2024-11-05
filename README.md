@@ -5,7 +5,8 @@ This repository contains a sample `schema.ts` for a social network application. 
 All of the authorization is modeled using Postgres RLS.
 
 ## Testing
+
 1. Configure a `.env` file with your database credentials (see `.env.template`)
 2. Run `bun install`
-2. Run `bun run db:generate`
-3. Run `bun run db:migrate`
+3. Run `bun run db:generate`
+4. Run `bun run db:migrate`

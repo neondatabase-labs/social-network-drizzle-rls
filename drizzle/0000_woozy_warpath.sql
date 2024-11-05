@@ -104,13 +104,13 @@ EXCEPTION
  WHEN duplicate_object THEN null;
 END $$;
 --> statement-breakpoint
-CREATE POLICY "crud-authenticated-policy-select" ON "chat_messages" AS PERMISSIVE FOR SELECT TO "authenticated" USING ((select auth.user_id() in (select user_id from chat_participants where chat_id = "chat_messages"."chat_id")));--> statement-breakpoint
-CREATE POLICY "chats-policy-insert" ON "chat_messages" AS PERMISSIVE FOR INSERT TO "authenticated" WITH CHECK ((select auth.user_id() = "chat_messages"."sender" and auth.user_id() in (select user_id from chat_participants where chat_id = "chat_messages"."chat_id")));--> statement-breakpoint
-CREATE POLICY "crud-authenticated-policy-select" ON "chat_participants" AS PERMISSIVE FOR SELECT TO "authenticated" USING ((select auth.user_id() in (select user_id from chat_participants where chat_id = "chat_participants"."chat_id")));--> statement-breakpoint
+CREATE POLICY "crud-authenticated-policy-select" ON "chat_messages" AS PERMISSIVE FOR SELECT TO "authenticated" USING (((select auth.user_id()) in (select user_id from my_chats_participants where chat_id = "chat_messages"."chat_id")));--> statement-breakpoint
+CREATE POLICY "chats-policy-insert" ON "chat_messages" AS PERMISSIVE FOR INSERT TO "authenticated" WITH CHECK (((select auth.user_id()) = "chat_messages"."sender" and (select auth.user_id()) in (select user_id from my_chats_participants where chat_id = "chat_messages"."chat_id")));--> statement-breakpoint
+CREATE POLICY "crud-authenticated-policy-select" ON "chat_participants" AS PERMISSIVE FOR SELECT TO "authenticated" USING (false);--> statement-breakpoint
 CREATE POLICY "crud-authenticated-policy-insert" ON "chat_participants" AS PERMISSIVE FOR INSERT TO "authenticated" WITH CHECK ((select auth.user_id() = (select owner_id from chats where id = "chat_participants"."chat_id")));--> statement-breakpoint
 CREATE POLICY "crud-authenticated-policy-update" ON "chat_participants" AS PERMISSIVE FOR UPDATE TO "authenticated" USING ((select auth.user_id() = (select owner_id from chats where id = "chat_participants"."chat_id"))) WITH CHECK ((select auth.user_id() = (select owner_id from chats where id = "chat_participants"."chat_id")));--> statement-breakpoint
 CREATE POLICY "crud-authenticated-policy-delete" ON "chat_participants" AS PERMISSIVE FOR DELETE TO "authenticated" USING ((select auth.user_id() = (select owner_id from chats where id = "chat_participants"."chat_id")));--> statement-breakpoint
-CREATE POLICY "crud-authenticated-policy-select" ON "chats" AS PERMISSIVE FOR SELECT TO "authenticated" USING ((select auth.user_id() in (select user_id from chat_participants where chat_id = "chats"."id")));--> statement-breakpoint
+CREATE POLICY "crud-authenticated-policy-select" ON "chats" AS PERMISSIVE FOR SELECT TO "authenticated" USING (((select auth.user_id()) = "chats"."owner_id" or (select auth.user_id()) in (select user_id from MY_CHATS_PARTICIPANTS where chat_id = "chats"."id")));--> statement-breakpoint
 CREATE POLICY "crud-authenticated-policy-insert" ON "chats" AS PERMISSIVE FOR INSERT TO "authenticated" WITH CHECK ((select auth.user_id() = "chats"."owner_id"));--> statement-breakpoint
 CREATE POLICY "crud-authenticated-policy-update" ON "chats" AS PERMISSIVE FOR UPDATE TO "authenticated" USING ((select auth.user_id() = "chats"."owner_id")) WITH CHECK ((select auth.user_id() = "chats"."owner_id"));--> statement-breakpoint
 CREATE POLICY "crud-authenticated-policy-delete" ON "chats" AS PERMISSIVE FOR DELETE TO "authenticated" USING ((select auth.user_id() = "chats"."owner_id"));--> statement-breakpoint
@@ -128,4 +128,5 @@ CREATE POLICY "crud-anonymous-policy-select" ON "user_profiles" AS PERMISSIVE FO
 CREATE POLICY "crud-authenticated-policy-select" ON "user_profiles" AS PERMISSIVE FOR SELECT TO "authenticated" USING (true);--> statement-breakpoint
 CREATE POLICY "crud-authenticated-policy-insert" ON "user_profiles" AS PERMISSIVE FOR INSERT TO "authenticated" WITH CHECK ((select auth.user_id() = "user_profiles"."user_id"));--> statement-breakpoint
 CREATE POLICY "crud-authenticated-policy-update" ON "user_profiles" AS PERMISSIVE FOR UPDATE TO "authenticated" USING ((select auth.user_id() = "user_profiles"."user_id")) WITH CHECK ((select auth.user_id() = "user_profiles"."user_id"));--> statement-breakpoint
-CREATE POLICY "crud-authenticated-policy-delete" ON "user_profiles" AS PERMISSIVE FOR DELETE TO "authenticated" USING ((select auth.user_id() = "user_profiles"."user_id"));
+CREATE POLICY "crud-authenticated-policy-delete" ON "user_profiles" AS PERMISSIVE FOR DELETE TO "authenticated" USING ((select auth.user_id() = "user_profiles"."user_id"));--> statement-breakpoint
+CREATE VIEW "public"."my_chats_participants" AS (select "chat_id", "user_id" from "chat_participants" where "chat_participants"."chat_id" in (select "chat_id" from "chat_participants" where "chat_participants"."user_id" = auth.user_id()));
