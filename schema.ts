@@ -29,7 +29,7 @@ export const users = pgTable("users", {
 export const userProfiles = pgTable(
   "user_profiles",
   {
-    userId: text("user_id").references(() => users.userId),
+    userId: text("user_id").references(() => users.userId).unique(),
     name: text("name"),
   },
   (table) =>
