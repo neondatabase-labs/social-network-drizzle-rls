@@ -89,6 +89,9 @@ export const chatParticipants = pgTable(
     // authenticated users can read chat participant list
     crudPolicy({
       role: authenticatedRole,
+
+      // Since we can't create a RLS policy for this rule
+      // it's better to block its reading, and only rely on the view `my_chats_participants`
       read: false,
       modify: sql`(select auth.user_id() = (select owner_id from chats where id = ${table.chatId}))`,
     }),
@@ -107,6 +110,10 @@ export const chats = pgTable(
     // of that chat.
     crudPolicy({
       role: authenticatedRole,
+
+      // The `(select auth.user_id()) = ${table.ownerId} OR` clause is needed because RLS rules are evaluated
+      // based on existing RLS restrictions. Without this clause, we couldn’t insert the first chatParticipant
+      // in a chat, as the initial rule only allowed access to chats where the user is already a participant.
       read: sql`((select auth.user_id()) = ${table.ownerId} or (select auth.user_id()) in (select user_id from MY_CHATS_PARTICIPANTS where chat_id = ${table.id}))`,
       modify: authUid(table.ownerId),
     }),
@@ -162,6 +169,13 @@ export const comments = pgTable(
   ],
 );
 
+// This view is necessary because RLS
+// does not support rules that filter a table based on its own data in a recursive way.
+// Specifically, RLS cannot handle conditions like:
+// "Show only the chat participants of chats where I am also a participant."
+// Attempting to enforce this rule directly on the `chatParticipants` table
+// leads to a recursion error. Using a view allows us to apply this filtering logic
+// without running into RLS limitations.
 export const myChatParticipantsView = pgView("my_chats_participants").as(
   (qb) => {
     const subquery = qb
