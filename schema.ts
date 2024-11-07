@@ -30,10 +30,13 @@ export const users = pgTable("users", {
 export const userProfiles = pgTable(
   "user_profiles",
   {
-    userId: text().references(() => users.userId).unique(),
+    userId: text()
+      .references(() => users.userId)
+      .unique(),
     name: text(),
   },
   (table) =>
+    // simple CRUD tables use the `crudPolicy` function
     [
       // anyone (anonymous) can read
       crudPolicy({
@@ -178,14 +181,18 @@ export const comments = pgTable(
 // to apply this filtering logic without running into RLS limitations.
 export const myChatParticipantsView = pgView("my_chats_participants").as(
   (qb) => {
-    const subquery = qb
+    const myChats = qb
       .select({ chatId: chatParticipants.chatId })
       .from(chatParticipants)
       .where(eq(chatParticipants.userId, sql`auth.user_id()`));
 
-    return qb
-      .select()
-      .from(chatParticipants)
-      .where(inArray(chatParticipants.chatId, subquery));
+    return (
+      qb
+        // 'DISTINCT' is needed to make sure the view is read-only
+        // Only 'simple' views are considered read-write
+        .selectDistinct()
+        .from(chatParticipants)
+        .where(inArray(chatParticipants.chatId, myChats))
+    );
   },
 );

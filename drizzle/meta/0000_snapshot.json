@@ -1,5 +1,5 @@
 {
-  "id": "fa1872a9-5fc3-4368-b19b-bf4557f31fc1",
+  "id": "9e320983-4ec8-461d-b994-206963eb3f20",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -39,12 +39,8 @@
           "name": "chat_messages_chatId_chats_id_fk",
           "tableFrom": "chat_messages",
           "tableTo": "chats",
-          "columnsFrom": [
-            "chatId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["chatId"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -52,12 +48,8 @@
           "name": "chat_messages_sender_users_userId_fk",
           "tableFrom": "chat_messages",
           "tableTo": "users",
-          "columnsFrom": [
-            "sender"
-          ],
-          "columnsTo": [
-            "userId"
-          ],
+          "columnsFrom": ["sender"],
+          "columnsTo": ["userId"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -65,46 +57,18 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {
-        "crud-authenticated-policy-insert": {
-          "name": "crud-authenticated-policy-insert",
-          "as": "PERMISSIVE",
-          "for": "INSERT",
-          "to": [
-            "authenticated"
-          ]
-        },
-        "crud-authenticated-policy-update": {
-          "name": "crud-authenticated-policy-update",
-          "as": "PERMISSIVE",
-          "for": "UPDATE",
-          "to": [
-            "authenticated"
-          ]
-        },
-        "crud-authenticated-policy-delete": {
-          "name": "crud-authenticated-policy-delete",
-          "as": "PERMISSIVE",
-          "for": "DELETE",
-          "to": [
-            "authenticated"
-          ]
-        },
         "crud-authenticated-policy-select": {
           "name": "crud-authenticated-policy-select",
           "as": "PERMISSIVE",
           "for": "SELECT",
-          "to": [
-            "authenticated"
-          ],
+          "to": ["authenticated"],
           "using": "((select auth.user_id()) in (select user_id from my_chats_participants where chat_id = \"chat_messages\".\"chatId\"))"
         },
         "chats-policy-insert": {
           "name": "chats-policy-insert",
           "as": "PERMISSIVE",
           "for": "INSERT",
-          "to": [
-            "authenticated"
-          ],
+          "to": ["authenticated"],
           "withCheck": "((select auth.user_id()) = \"chat_messages\".\"sender\" and (select auth.user_id()) in (select user_id from my_chats_participants where chat_id = \"chat_messages\".\"chatId\"))"
         }
       },
@@ -134,12 +98,8 @@
           "name": "chat_participants_chatId_chats_id_fk",
           "tableFrom": "chat_participants",
           "tableTo": "chats",
-          "columnsFrom": [
-            "chatId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["chatId"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -147,12 +107,8 @@
           "name": "chat_participants_userId_users_userId_fk",
           "tableFrom": "chat_participants",
           "tableTo": "users",
-          "columnsFrom": [
-            "userId"
-          ],
-          "columnsTo": [
-            "userId"
-          ],
+          "columnsFrom": ["userId"],
+          "columnsTo": ["userId"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -160,30 +116,30 @@
       "compositePrimaryKeys": {
         "chat_participants_chatId_userId_pk": {
           "name": "chat_participants_chatId_userId_pk",
-          "columns": [
-            "chatId",
-            "userId"
-          ]
+          "columns": ["chatId", "userId"]
         }
       },
       "uniqueConstraints": {},
       "policies": {
+        "crud-authenticated-policy-select": {
+          "name": "crud-authenticated-policy-select",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": ["authenticated"],
+          "using": "false"
+        },
         "crud-authenticated-policy-insert": {
           "name": "crud-authenticated-policy-insert",
           "as": "PERMISSIVE",
           "for": "INSERT",
-          "to": [
-            "authenticated"
-          ],
+          "to": ["authenticated"],
           "withCheck": "(select auth.user_id() = (select owner_id from chats where id = \"chat_participants\".\"chatId\"))"
         },
         "crud-authenticated-policy-update": {
           "name": "crud-authenticated-policy-update",
           "as": "PERMISSIVE",
           "for": "UPDATE",
-          "to": [
-            "authenticated"
-          ],
+          "to": ["authenticated"],
           "using": "(select auth.user_id() = (select owner_id from chats where id = \"chat_participants\".\"chatId\"))",
           "withCheck": "(select auth.user_id() = (select owner_id from chats where id = \"chat_participants\".\"chatId\"))"
         },
@@ -191,19 +147,8 @@
           "name": "crud-authenticated-policy-delete",
           "as": "PERMISSIVE",
           "for": "DELETE",
-          "to": [
-            "authenticated"
-          ],
+          "to": ["authenticated"],
           "using": "(select auth.user_id() = (select owner_id from chats where id = \"chat_participants\".\"chatId\"))"
-        },
-        "crud-authenticated-policy-select": {
-          "name": "crud-authenticated-policy-select",
-          "as": "PERMISSIVE",
-          "for": "SELECT",
-          "to": [
-            "authenticated"
-          ],
-          "using": "false"
         }
       },
       "checkConstraints": {},
@@ -238,12 +183,8 @@
           "name": "chats_ownerId_users_userId_fk",
           "tableFrom": "chats",
           "tableTo": "users",
-          "columnsFrom": [
-            "ownerId"
-          ],
-          "columnsTo": [
-            "userId"
-          ],
+          "columnsFrom": ["ownerId"],
+          "columnsTo": ["userId"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -251,22 +192,25 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {
+        "crud-authenticated-policy-select": {
+          "name": "crud-authenticated-policy-select",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": ["authenticated"],
+          "using": "((select auth.user_id()) = \"chats\".\"ownerId\" or (select auth.user_id()) in (select user_id from MY_CHATS_PARTICIPANTS where chat_id = \"chats\".\"id\"))"
+        },
         "crud-authenticated-policy-insert": {
           "name": "crud-authenticated-policy-insert",
           "as": "PERMISSIVE",
           "for": "INSERT",
-          "to": [
-            "authenticated"
-          ],
+          "to": ["authenticated"],
           "withCheck": "(select auth.user_id() = \"chats\".\"ownerId\")"
         },
         "crud-authenticated-policy-update": {
           "name": "crud-authenticated-policy-update",
           "as": "PERMISSIVE",
           "for": "UPDATE",
-          "to": [
-            "authenticated"
-          ],
+          "to": ["authenticated"],
           "using": "(select auth.user_id() = \"chats\".\"ownerId\")",
           "withCheck": "(select auth.user_id() = \"chats\".\"ownerId\")"
         },
@@ -274,19 +218,8 @@
           "name": "crud-authenticated-policy-delete",
           "as": "PERMISSIVE",
           "for": "DELETE",
-          "to": [
-            "authenticated"
-          ],
+          "to": ["authenticated"],
           "using": "(select auth.user_id() = \"chats\".\"ownerId\")"
-        },
-        "crud-authenticated-policy-select": {
-          "name": "crud-authenticated-policy-select",
-          "as": "PERMISSIVE",
-          "for": "SELECT",
-          "to": [
-            "authenticated"
-          ],
-          "using": "((select auth.user_id()) = \"chats\".\"ownerId\" or (select auth.user_id()) in (select user_id from MY_CHATS_PARTICIPANTS where chat_id = \"chats\".\"id\"))"
         }
       },
       "checkConstraints": {},
@@ -327,12 +260,8 @@
           "name": "comments_postId_posts_id_fk",
           "tableFrom": "comments",
           "tableTo": "posts",
-          "columnsFrom": [
-            "postId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["postId"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -340,12 +269,8 @@
           "name": "comments_userId_users_userId_fk",
           "tableFrom": "comments",
           "tableTo": "users",
-          "columnsFrom": [
-            "userId"
-          ],
-          "columnsTo": [
-            "userId"
-          ],
+          "columnsFrom": ["userId"],
+          "columnsTo": ["userId"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -353,55 +278,32 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {
-        "crud-anonymous-policy-insert": {
-          "name": "crud-anonymous-policy-insert",
-          "as": "PERMISSIVE",
-          "for": "INSERT",
-          "to": [
-            "anonymous"
-          ]
-        },
-        "crud-anonymous-policy-update": {
-          "name": "crud-anonymous-policy-update",
-          "as": "PERMISSIVE",
-          "for": "UPDATE",
-          "to": [
-            "anonymous"
-          ]
-        },
-        "crud-anonymous-policy-delete": {
-          "name": "crud-anonymous-policy-delete",
-          "as": "PERMISSIVE",
-          "for": "DELETE",
-          "to": [
-            "anonymous"
-          ]
-        },
         "crud-anonymous-policy-select": {
           "name": "crud-anonymous-policy-select",
           "as": "PERMISSIVE",
           "for": "SELECT",
-          "to": [
-            "anonymous"
-          ],
+          "to": ["anonymous"],
+          "using": "true"
+        },
+        "crud-authenticated-policy-select": {
+          "name": "crud-authenticated-policy-select",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": ["authenticated"],
           "using": "true"
         },
         "crud-authenticated-policy-insert": {
           "name": "crud-authenticated-policy-insert",
           "as": "PERMISSIVE",
           "for": "INSERT",
-          "to": [
-            "authenticated"
-          ],
+          "to": ["authenticated"],
           "withCheck": "(select auth.user_id() = \"comments\".\"userId\")"
         },
         "crud-authenticated-policy-update": {
           "name": "crud-authenticated-policy-update",
           "as": "PERMISSIVE",
           "for": "UPDATE",
-          "to": [
-            "authenticated"
-          ],
+          "to": ["authenticated"],
           "using": "(select auth.user_id() = \"comments\".\"userId\")",
           "withCheck": "(select auth.user_id() = \"comments\".\"userId\")"
         },
@@ -409,19 +311,8 @@
           "name": "crud-authenticated-policy-delete",
           "as": "PERMISSIVE",
           "for": "DELETE",
-          "to": [
-            "authenticated"
-          ],
+          "to": ["authenticated"],
           "using": "(select auth.user_id() = \"comments\".\"userId\")"
-        },
-        "crud-authenticated-policy-select": {
-          "name": "crud-authenticated-policy-select",
-          "as": "PERMISSIVE",
-          "for": "SELECT",
-          "to": [
-            "authenticated"
-          ],
-          "using": "true"
         }
       },
       "checkConstraints": {},
@@ -462,12 +353,8 @@
           "name": "posts_userId_users_userId_fk",
           "tableFrom": "posts",
           "tableTo": "users",
-          "columnsFrom": [
-            "userId"
-          ],
-          "columnsTo": [
-            "userId"
-          ],
+          "columnsFrom": ["userId"],
+          "columnsTo": ["userId"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -475,55 +362,32 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {
-        "crud-anonymous-policy-insert": {
-          "name": "crud-anonymous-policy-insert",
-          "as": "PERMISSIVE",
-          "for": "INSERT",
-          "to": [
-            "anonymous"
-          ]
-        },
-        "crud-anonymous-policy-update": {
-          "name": "crud-anonymous-policy-update",
-          "as": "PERMISSIVE",
-          "for": "UPDATE",
-          "to": [
-            "anonymous"
-          ]
-        },
-        "crud-anonymous-policy-delete": {
-          "name": "crud-anonymous-policy-delete",
-          "as": "PERMISSIVE",
-          "for": "DELETE",
-          "to": [
-            "anonymous"
-          ]
-        },
         "crud-anonymous-policy-select": {
           "name": "crud-anonymous-policy-select",
           "as": "PERMISSIVE",
           "for": "SELECT",
-          "to": [
-            "anonymous"
-          ],
+          "to": ["anonymous"],
+          "using": "true"
+        },
+        "crud-authenticated-policy-select": {
+          "name": "crud-authenticated-policy-select",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": ["authenticated"],
           "using": "true"
         },
         "crud-authenticated-policy-insert": {
           "name": "crud-authenticated-policy-insert",
           "as": "PERMISSIVE",
           "for": "INSERT",
-          "to": [
-            "authenticated"
-          ],
+          "to": ["authenticated"],
           "withCheck": "(select auth.user_id() = \"posts\".\"userId\")"
         },
         "crud-authenticated-policy-update": {
           "name": "crud-authenticated-policy-update",
           "as": "PERMISSIVE",
           "for": "UPDATE",
-          "to": [
-            "authenticated"
-          ],
+          "to": ["authenticated"],
           "using": "(select auth.user_id() = \"posts\".\"userId\")",
           "withCheck": "(select auth.user_id() = \"posts\".\"userId\")"
         },
@@ -531,19 +395,8 @@
           "name": "crud-authenticated-policy-delete",
           "as": "PERMISSIVE",
           "for": "DELETE",
-          "to": [
-            "authenticated"
-          ],
+          "to": ["authenticated"],
           "using": "(select auth.user_id() = \"posts\".\"userId\")"
-        },
-        "crud-authenticated-policy-select": {
-          "name": "crud-authenticated-policy-select",
-          "as": "PERMISSIVE",
-          "for": "SELECT",
-          "to": [
-            "authenticated"
-          ],
-          "using": "true"
         }
       },
       "checkConstraints": {},
@@ -572,12 +425,8 @@
           "name": "user_profiles_userId_users_userId_fk",
           "tableFrom": "user_profiles",
           "tableTo": "users",
-          "columnsFrom": [
-            "userId"
-          ],
-          "columnsTo": [
-            "userId"
-          ],
+          "columnsFrom": ["userId"],
+          "columnsTo": ["userId"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -587,61 +436,36 @@
         "user_profiles_userId_unique": {
           "name": "user_profiles_userId_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "userId"
-          ]
+          "columns": ["userId"]
         }
       },
       "policies": {
-        "crud-anonymous-policy-insert": {
-          "name": "crud-anonymous-policy-insert",
-          "as": "PERMISSIVE",
-          "for": "INSERT",
-          "to": [
-            "anonymous"
-          ]
-        },
-        "crud-anonymous-policy-update": {
-          "name": "crud-anonymous-policy-update",
-          "as": "PERMISSIVE",
-          "for": "UPDATE",
-          "to": [
-            "anonymous"
-          ]
-        },
-        "crud-anonymous-policy-delete": {
-          "name": "crud-anonymous-policy-delete",
-          "as": "PERMISSIVE",
-          "for": "DELETE",
-          "to": [
-            "anonymous"
-          ]
-        },
         "crud-anonymous-policy-select": {
           "name": "crud-anonymous-policy-select",
           "as": "PERMISSIVE",
           "for": "SELECT",
-          "to": [
-            "anonymous"
-          ],
+          "to": ["anonymous"],
+          "using": "true"
+        },
+        "crud-authenticated-policy-select": {
+          "name": "crud-authenticated-policy-select",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": ["authenticated"],
           "using": "true"
         },
         "crud-authenticated-policy-insert": {
           "name": "crud-authenticated-policy-insert",
           "as": "PERMISSIVE",
           "for": "INSERT",
-          "to": [
-            "authenticated"
-          ],
+          "to": ["authenticated"],
           "withCheck": "(select auth.user_id() = \"user_profiles\".\"userId\")"
         },
         "crud-authenticated-policy-update": {
           "name": "crud-authenticated-policy-update",
           "as": "PERMISSIVE",
           "for": "UPDATE",
-          "to": [
-            "authenticated"
-          ],
+          "to": ["authenticated"],
           "using": "(select auth.user_id() = \"user_profiles\".\"userId\")",
           "withCheck": "(select auth.user_id() = \"user_profiles\".\"userId\")"
         },
@@ -649,19 +473,8 @@
           "name": "crud-authenticated-policy-delete",
           "as": "PERMISSIVE",
           "for": "DELETE",
-          "to": [
-            "authenticated"
-          ],
+          "to": ["authenticated"],
           "using": "(select auth.user_id() = \"user_profiles\".\"userId\")"
-        },
-        "crud-authenticated-policy-select": {
-          "name": "crud-authenticated-policy-select",
-          "as": "PERMISSIVE",
-          "for": "SELECT",
-          "to": [
-            "authenticated"
-          ],
-          "using": "true"
         }
       },
       "checkConstraints": {},
@@ -705,9 +518,7 @@
         "users_email_unique": {
           "name": "users_email_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "email"
-          ]
+          "columns": ["email"]
         }
       },
       "policies": {},
@@ -719,6 +530,7 @@
   "schemas": {},
   "sequences": {},
   "roles": {},
+  "policies": {},
   "views": {
     "public.my_chats_participants": {
       "columns": {
@@ -735,7 +547,7 @@
           "notNull": false
         }
       },
-      "definition": "select \"chatId\", \"userId\" from \"chat_participants\" where \"chat_participants\".\"chatId\" in (select \"chatId\" from \"chat_participants\" where \"chat_participants\".\"userId\" = auth.user_id())",
+      "definition": "select distinct \"chatId\", \"userId\" from \"chat_participants\" where \"chat_participants\".\"chatId\" in (select \"chatId\" from \"chat_participants\" where \"chat_participants\".\"userId\" = auth.user_id())",
       "name": "my_chats_participants",
       "schema": "public",
       "isExisting": false,
